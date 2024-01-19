@@ -4,4 +4,8 @@
     
     <h2 class="text-center">{{ user.username }}</h2>
 
+    <div class='card'>
+        {% for post in posts %}
+            <a href="{% url 'home:post_detail' post.id  %}" class="card-body">{{ post.body|truncatewords:2 }}</a>
+        {% endfor %}
 {% endblock  %}
