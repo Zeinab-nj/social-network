@@ -1,6 +1,6 @@
 from django.shortcuts import render, redirect
 from django.views import View
-from .forms import UserRegistrationForm, UserLoginForm
+from .forms import UserRegistrationForm, UserLoginForm, EditUserForm
 from django.contrib.auth.models import User 
 from django.contrib import messages
 from django.contrib.auth import authenticate, login, logout
@@ -29,6 +29,7 @@ class UserRegisterView(View):
         if form.is_valid():
             cd = form.cleaned_data
             User.objects.create_user(cd['username'], cd['email'], cd['password1'])
+
             messages.success(request, 'You registered successfully', 'success')
             return redirect('home:home')
         return render(request, self.template_name ,{'form':form})
@@ -131,5 +132,18 @@ class UserUnfollowView(LoginRequiredMixin, View):
 
 
 
+class EditUserView(LoginRequiredMixin, View):
+    form_class = EditUserForm
+    
+    def get(self, request):
+        form = self.form_class(instance=request.user.profile, initial={'email':request.user.email})
+        return render(request, 'account/edit_profile.html', {"form":form})
 
-
+    def post(self, request):
+        form = self.form_class(request.POST, instance=request.user.profile)
+        if form.is_valid():
+            form.save()
+            request.user.email = form.cleaned_data['email']
+            request.user.save()
+            messages.success(request, 'profile edited successfully', 'success')
+        return redirect('account:user_profile', request.user.id)
